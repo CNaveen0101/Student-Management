@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Records</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--ink:#1d2b27;--paper:#f4f6f2;--card:#fff;--green:#24473e;--pencil:#f0b429;--line:#d9dfd8;--muted:#5f6f69;--red:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Atkinson Hyperlegible",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.5}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--pencil);outline-offset:2px}
+.hidden{display:none!important}
+.btn{background:var(--green);color:#fff;border:0;border-radius:6px;padding:.6rem 1rem;cursor:pointer;font-weight:700}
+.btn.ghost{background:transparent;color:var(--green);border:1px solid var(--green)}
+.btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn.sm{padding:.3rem .6rem;font-size:.9rem}
+input,textarea{width:100%;padding:.6rem;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit}
+label{display:block;font-weight:700;font-size:.9rem;margin:.8rem 0 .2rem}
+.err{color:var(--red);min-height:1.4rem;margin:.5rem 0 0}
+/* sign-in: full-page banner. A .jpg of the same name overrides the .svg placeholder */
+#login{min-height:100vh;display:grid;place-items:center;padding:1.5rem;
+  background:linear-gradient(rgba(15,30,26,.35),rgba(15,30,26,.35)),url(/img/login.jpg) center/cover,url(/img/login.svg) center/cover}
+#login form{background:#fff;border-radius:10px;padding:2rem;width:min(380px,100%);border-top:6px solid var(--pencil)}
+#login h1{margin:0;font-size:1.8rem}#login p.sub{margin:.2rem 0 0;color:var(--muted)}
+#login .btn{width:100%;margin-top:1rem}
+/* dashboard */
+header{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1.5rem;background:var(--green);color:#fff}
+header .btn{background:transparent;border:1px solid #fff}
+main{max-width:1150px;margin:0 auto;padding:1.5rem}
+.tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.tab{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.6rem 1.2rem;cursor:pointer;font-weight:700}
+.tab[aria-selected=true]{border-color:var(--green);box-shadow:inset 0 -5px 0 var(--pencil)}
+.banner{border-radius:8px;padding:2.2rem 1.6rem;color:#fff;margin-bottom:1rem;background-size:cover;background-position:center}
+.banner h2{margin:0;font-size:1.8rem}.banner p{margin:.2rem 0 0;opacity:.9}
+.banner.overview{background-image:linear-gradient(90deg,rgba(15,30,26,.75),rgba(15,30,26,.15)),url(/img/login.jpg),url(/img/login.svg)}
+.banner.students{background-image:linear-gradient(90deg,rgba(15,30,26,.75),rgba(15,30,26,.15)),url(/img/students.jpg),url(/img/students.svg)}
+.banner.teachers{background-image:linear-gradient(90deg,rgba(15,30,26,.75),rgba(15,30,26,.15)),url(/img/teachers.jpg),url(/img/teachers.svg)}
+.bar{display:flex;gap:.6rem;margin-bottom:1rem}.bar input{max-width:320px}.bar .btn{margin-left:auto}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;padding:.65rem .8rem;border-bottom:1px solid var(--line)}
+th{background:#eaefe9;font-size:.9rem}td.act{white-space:nowrap;text-align:right}
+.empty{padding:2rem;text-align:center;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1rem 1.2rem}
+.card b{display:block;font-size:2.2rem;line-height:1.1}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem}
+.two section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1rem 1.2rem}
+.two h3{margin:0 0 .6rem}
+.brow{display:grid;grid-template-columns:130px 1fr 30px;gap:.6rem;align-items:center;margin:.4rem 0}
+.brow i{display:block;height:12px;background:var(--pencil);border-radius:3px}
+.list li{padding:.35rem 0;border-bottom:1px solid var(--line);list-style:none}.list{padding:0;margin:0}
+.list small{color:var(--muted)}
+dialog{border:0;border-radius:8px;padding:1.5rem;width:min(520px,92vw);max-height:92vh}
+dialog::backdrop{background:rgba(20,30,27,.5)}dialog h3{margin:0}
+.row{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.2rem}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <form id="loginForm">
+    <h1>School Records</h1><p class="sub">Sign in to manage students and teachers.</p>
+    <label for="u">Username</label><input id="u" autocomplete="username" required>
+    <label for="p">Password</label><input id="p" type="password" autocomplete="current-password" required>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn">Sign in</button>
+  </form>
+</section>
+
+<section id="dash" class="hidden">
+  <header><strong>School Records</strong><span><span id="who"></span> <button class="btn sm" id="logout">Sign out</button></span></header>
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-t="overview">Overview</button>
+      <button class="tab" role="tab" data-t="students">Students</button>
+      <button class="tab" role="tab" data-t="teachers">Teachers</button>
+    </div>
+    <div class="banner" id="banner"><h2 id="bt"></h2><p id="bp"></p></div>
+    <div id="overview"></div>
+    <div id="list" class="hidden">
+      <div class="bar"><input id="search" type="search" placeholder="Search" aria-label="Search"><button class="btn" id="add"></button></div>
+      <div class="scroll"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table><div id="empty" class="empty hidden"></div></div>
+    </div>
+  </main>
+</section>
+
+<dialog id="dlg">
+  <form id="recForm" method="dialog">
+    <h3 id="dlgTitle"></h3><div id="fields"></div>
+    <p class="err" id="recErr" role="alert"></p>
+    <div class="row"><button type="button" class="btn ghost" id="cancel">Cancel</button><button class="btn">Save</button></div>
+  </form>
+</dialog>
+
+<script>
+const CONFIG = {
+  students: { label:'student', title:'Students', sub:'Roll numbers, classes, departments and guardian contacts.',
+    idField:'rollNo', hint:'Leave Roll no empty to generate one (STU-0001).',
+    fields:[['rollNo','Roll no / ID'],['name','Full name'],['className','Class'],['department','Department'],['email','Email','email'],
+      ['phone','Student phone'],['dob','Date of birth','date'],['guardianName','Guardian name'],['guardianMobile','Guardian mobile no','tel'],['address','Address']],
+    columns:['rollNo','name','className','department','guardianName','guardianMobile'] },
+  teachers: { label:'teacher', title:'Teachers', sub:'Teacher IDs, subjects and experience.',
+    idField:'teacherId', hint:'Leave Teacher ID empty to generate one (TCH-0001).',
+    fields:[['teacherId','Teacher ID'],['name','Full name'],['department','Department'],['subject','Subject'],['email','Email','email'],['phone','Phone','tel'],
+      ['qualification','Qualification'],['experienceYears','Experience (years)','number'],['experienceDetails','Experience details (previous schools, roles)','textarea'],['hireDate','Joining date','date']],
+    columns:['teacherId','name','department','subject','experienceYears','phone'] },
+};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token = sessionStorage.getItem('token'), tab = 'overview', editingId = null, rows = [];
+
+async function api(path, opts = {}) {
+  const res = await fetch('/api/' + path, { ...opts,
+    headers: { 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+    body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (res.status === 401 && path !== 'login') { signOut(); throw new Error('Please sign in again.'); }
+  if (res.status === 204) return null;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+const show = (on) => { $('login').classList.toggle('hidden', on); $('dash').classList.toggle('hidden', !on); };
+function signOut() { token = null; sessionStorage.clear(); show(false); }
+
+$('loginForm').onsubmit = async (e) => {
+  e.preventDefault(); $('loginErr').textContent = '';
+  try {
+    const d = await api('login', { method:'POST', body:{ username:$('u').value, password:$('p').value } });
+    token = d.token; sessionStorage.setItem('token', token); sessionStorage.setItem('user', d.username); start();
+  } catch (err) { $('loginErr').textContent = err.message; }
+};
+$('logout').onclick = signOut;
+function start() { show(true); $('who').textContent = sessionStorage.getItem('user') || ''; load(); }
+
+async function load() {
+  document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.t === tab));
+  $('banner').className = 'banner ' + tab;
+  const isOv = tab === 'overview';
+  $('overview').classList.toggle('hidden', !isOv); $('list').classList.toggle('hidden', isOv);
+  try {
+    if (isOv) {
+      $('bt').textContent = 'Overview'; $('bp').textContent = 'A quick look at your school today.';
+      return renderOverview(await api('stats'));
+    }
+    const cfg = CONFIG[tab];
+    $('bt').textContent = cfg.title; $('bp').textContent = cfg.sub; $('add').textContent = 'Add ' + cfg.label;
+    rows = await api(tab); render();
+  } catch (err) { if (token) alert(err.message); }
+}
+
+function renderOverview(s) {
+  const depts = Object.entries(s.departments), max = Math.max(1, ...depts.map((d) => d[1]));
+  const bars = depts.map(([n, c]) => `<div class="brow"><span>${esc(n)}</span><i style="width:${c / max * 100}%"></i><b>${c}</b></div>`).join('') || '<p class="empty">No students yet.</p>';
+  const li = (r, sub) => `<li>${esc(r.name)} <small>${esc(sub)}</small></li>`;
+  $('overview').innerHTML =
+    `<div class="cards"><div class="card"><b>${s.students}</b>Students</div><div class="card"><b>${s.teachers}</b>Teachers</div><div class="card"><b>${depts.length}</b>Departments</div></div>
+     <div class="two"><section><h3>Students by department</h3>${bars}</section>
+     <section><h3>Recently added</h3><ul class="list">${s.recentStudents.map((r) => li(r, 'Student · ' + (r.className || ''))).join('')}${s.recentTeachers.map((r) => li(r, 'Teacher · ' + (r.subject || ''))).join('')}</ul></section></div>`;
+}
+
+function render() {
+  const cfg = CONFIG[tab], q = $('search').value.toLowerCase(), label = Object.fromEntries(cfg.fields.map((f) => [f[0], f[1]]));
+  const shown = rows.filter((r) => JSON.stringify(Object.values(r)).toLowerCase().includes(q));
+  $('thead').innerHTML = '<tr>' + cfg.columns.map((c) => `<th>${label[c]}</th>`).join('') + '<th></th></tr>';
+  $('tbody').innerHTML = shown.map((r) => '<tr>' + cfg.columns.map((c) => `<td>${esc(r[c])}</td>`).join('') +
+    `<td class="act"><button class="btn ghost sm" data-edit="${r.id}">Edit</button> <button class="btn danger sm" data-del="${r.id}">Delete</button></td></tr>`).join('');
+  $('empty').classList.toggle('hidden', shown.length > 0);
+  $('empty').textContent = q ? 'No matches.' : `No ${tab} yet. Use “Add ${cfg.label}” to create the first record.`;
+}
+document.querySelectorAll('.tab').forEach((t) => t.onclick = () => { tab = t.dataset.t; $('search').value = ''; load(); });
+$('search').oninput = () => render();
+
+function openForm(rec) {
+  const cfg = CONFIG[tab]; editingId = rec ? rec.id : null; $('recErr').textContent = '';
+  $('dlgTitle').textContent = (rec ? 'Edit ' : 'Add ') + cfg.label;
+  $('fields').innerHTML = cfg.fields.map(([k, l, type]) => type === 'textarea'
+    ? `<label for="f-${k}">${l}</label><textarea id="f-${k}" name="${k}" rows="3">${esc(rec?.[k])}</textarea>`
+    : `<label for="f-${k}">${l}</label><input id="f-${k}" name="${k}" type="${type || 'text'}" value="${esc(rec?.[k])}" ${k === 'name' ? 'required' : ''}>`).join('')
+    + (rec ? '' : `<p style="color:var(--muted);font-size:.9rem">${cfg.hint}</p>`);
+  $('dlg').showModal();
+}
+$('add').onclick = () => openForm(null);
+$('cancel').onclick = () => $('dlg').close();
+$('tbody').onclick = async (e) => {
+  const edit = e.target.dataset.edit, del = e.target.dataset.del;
+  if (edit) openForm(rows.find((r) => r.id == edit));
+  if (del && confirm(`Delete this ${CONFIG[tab].label}? This can't be undone.`)) { await api(`${tab}/${del}`, { method:'DELETE' }); load(); }
+};
+$('recForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData(e.target));
+  if ('experienceYears' in body) body.experienceYears = body.experienceYears === '' ? null : Number(body.experienceYears);
+  try { await api(editingId ? `${tab}/${editingId}` : tab, { method: editingId ? 'PUT' : 'POST', body }); $('dlg').close(); load(); }
+  catch (err) { $('recErr').textContent = err.message; }
+};
+if (token) start(); else show(false);
+</script>
+</body>
+</html>
