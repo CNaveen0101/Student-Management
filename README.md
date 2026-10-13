@@ -25,3 +25,5 @@ No code changes needed.
 ## Banner images
 Drop your own `login.jpg`, `students.jpg`, `teachers.jpg` into `src/main/resources/static/img/`.
 They automatically replace the built-in placeholder banners.
+
+ac5c06df5fea7461d9a40c721eb57e2d-149839827.us-east-1.elb.amazonaws.com
